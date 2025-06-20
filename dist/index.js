@@ -17443,7 +17443,7 @@ async function run() {
     const branches = core.getInput('branches');
     const destination = core.getInput('destination');
     const customBranchName = core.getInput('bot_branch_name');
-    const repoNameManual = eventPayload.inputs && eventPayload.inputs.repo_name;
+    const repoNameManual = core.getInput('repo_name');
 
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 
