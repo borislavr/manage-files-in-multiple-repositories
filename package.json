@@ -37,10 +37,10 @@
     "simple-git": "^2.48.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.23.0",
-    "eslint": "^7.7.0",
+    "@vercel/ncc": "^0.38.3",
+    "eslint": "^8.56.0",
     "eslint-plugin-jest": "^23.20.0",
-    "eslint-plugin-sonarjs": "^0.5.0",
+    "eslint-plugin-sonarjs": "^3.0.3",
     "jest": "^26.6.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^3.0.2"
