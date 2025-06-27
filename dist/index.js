@@ -137,12 +137,17 @@ async function getReposList(octokit, owner) {
 }
 
 async function createPr(octokit, branchName, id, commitMessage, defaultBranch) {
+  // Разделяем commitMessage на title и body
+  const [title, ...bodyLines] = commitMessage.split('\n');
+  const body = bodyLines.length > 0 ? bodyLines.join('\n') : undefined;
+
   const createPrMutation =
-    `mutation createPr($branchName: String!, $id: ID!, $commitMessage: String!, $defaultBranch: String!) {
+    `mutation createPr($branchName: String!, $id: ID!, $title: String!, $body: String, $defaultBranch: String!) {
       createPullRequest(input: {
         baseRefName: $defaultBranch,
         headRefName: $branchName,
-        title: $commitMessage,
+        title: $title,
+        body: $body,
         repositoryId: $id
       }){
         pullRequest {
@@ -155,7 +160,8 @@ async function createPr(octokit, branchName, id, commitMessage, defaultBranch) {
   const newPrVariables = {
     branchName,
     id,
-    commitMessage,
+    title,
+    body,
     defaultBranch
   };
 
