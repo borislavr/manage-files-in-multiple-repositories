@@ -6,6 +6,7 @@
   "scripts": {
     "start": "rimraf ./clones && node lib/index.js",
     "dev": "DEBUG=simple-git npm start",
+    "prepare": "npm run package",
     "package": "ncc build lib/index.js -o dist",
     "gitAdd": "git add dist/index.js",
     "gen-readme-toc": "markdown-toc -i README.md",
@@ -42,7 +43,6 @@
     "eslint-plugin-jest": "^23.20.0",
     "eslint-plugin-sonarjs": "^3.0.3",
     "jest": "^26.6.3",
-    "pre-commit": "^1.2.2",
     "rimraf": "^3.0.2"
   }
 }

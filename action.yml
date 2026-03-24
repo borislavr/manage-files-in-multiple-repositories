@@ -42,7 +42,7 @@ inputs:
       Comma-separated list of file paths or directories that should be handled by this action and copied or updated in other repositories.
       This option cannot be used at the same time with "patterns_to_remove", these fields are mutually exclusive.
       In the format `.github/workflows`.
-    required: true  
+    required: true
   repos_to_ignore:
     description: >
       Comma-separated list of repositories that should not get updates from this action.
@@ -84,7 +84,7 @@ inputs:
     required: false
     default: ''
 runs:
-  using: node16
+  using: node24
   main: dist/index.js
 branding:
   icon: compass
