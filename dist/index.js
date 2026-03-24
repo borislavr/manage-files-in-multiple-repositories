@@ -136,60 +136,41 @@ async function getReposList(octokit, owner) {
   return reposList;
 }
 
-async function createPr(octokit, branchName, id, commitMessage, defaultBranch) {
-  // Разделяем commitMessage на title и body
+async function createPr(octokit, owner, repo, headBranch, baseBranch, commitMessage) {
   const [title, ...bodyLines] = commitMessage.split('\n');
   const body = bodyLines.length > 0 ? bodyLines.join('\n') : undefined;
 
-  const createPrMutation =
-    `mutation createPr($branchName: String!, $id: ID!, $title: String!, $body: String, $defaultBranch: String!) {
-      createPullRequest(input: {
-        baseRefName: $defaultBranch,
-        headRefName: $branchName,
-        title: $title,
-        body: $body,
-        repositoryId: $id
-      }){
-        pullRequest {
-          url
-        }
-      }
-    }
-    `;
-
-  const newPrVariables = {
-    branchName,
-    id,
-    title,
-    body,
-    defaultBranch
-  };
-
   let retries = 5;
-  let count = 0;
+  let attempt = 0;
 
   while (retries-- > 0) {
-    count++;
+    attempt++;
     try {
       core.info('Waiting 5sec before PR creation');
-      await sleep(5000);
-      core.info(`PR creation attempt ${count}`);
-      const { createPullRequest: { pullRequest: { url: pullRequestUrl } } } = await octokit.graphql(createPrMutation, newPrVariables);
-      retries = 0;
-      return pullRequestUrl;
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      core.info(`PR creation attempt ${attempt}`);
+
+      const { data } = await octokit.rest.pulls.create({
+        owner,
+        repo,
+        head: headBranch,
+        base: baseBranch,
+        title,
+        body,
+      });
+
+      return data.html_url;
     } catch (error) {
-      //if error is different than rate limit/timeout related we should throw error as it is very probable that
-      //next PR will also fail anyway, we should let user know early in the process by failing the action
-      if (error.message !== 'was submitted too quickly') {
-        throw new Error(`Unable to create a PR: ${  error}`);
+      const message = error.message || '';
+      const isRetryable = message.includes('was submitted too quickly') || message.includes('rate limit');
+      if (!isRetryable || retries <= 0) {
+        throw new Error(`Unable to create a PR: ${error}`);
       }
+      core.info(`PR creation error: ${message}. Will retry...`);
     }
   }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 }
+
 
 
 /***/ }),
@@ -45118,6 +45099,7 @@ async function resolveRepoList(octokit, owner, manualRepoName, isWorkflowDispatc
 }
 
 async function applyFileChanges({
+  owner,
   repo,
   repoName,
   repoId,
@@ -45173,7 +45155,7 @@ async function applyFileChanges({
 
       let prUrl;
       try {
-        prUrl = await createPr(octokit, repoName, repoId, newBranchName, branchName, commitMessage);
+        prUrl = await createPr(octokit, owner, repoName, newBranchName, branchName, commitMessage);
       } catch (err) {
         if (branchExists) {
           core.info(`PR creation skipped as branch exists; just pushed changes to ${newBranchName}.`, err);
@@ -45276,6 +45258,7 @@ async function run() {
       }
 
       await applyFileChanges({
+        owner,
         repo: { name: remoteRepo.name, id: remoteRepo.id, dir: cloneDir, git },
         repoName: remoteRepo.name,
         repoId: remoteRepo.id,
