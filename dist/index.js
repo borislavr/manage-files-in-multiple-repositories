@@ -151,12 +151,12 @@ async function createPr(octokit, owner, repo, headBranch, baseBranch, commitMess
       core.info(`PR creation attempt ${attempt}`);
 
       const { data } = await octokit.rest.pulls.create({
-        owner,
-        repo,
+        owner: owner,
+        repo: repo,
         head: headBranch,
         base: baseBranch,
-        title,
-        body,
+        title: title,
+        body: body,
       });
 
       return data.html_url;
